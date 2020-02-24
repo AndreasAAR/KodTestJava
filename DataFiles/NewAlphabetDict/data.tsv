@@ -1,0 +1,26 @@
+a	@	at symbol
+b	8	digit eight
+c	(	open parenthesis
+d	|)	bar, close parenthesis
+e	3	digit three
+f	#	number sign (hash)
+g	6	digit six
+h	[-]	bracket, hyphen, bracket
+i	|	bar
+j	_|	underscore, bar
+k	|<	bar, less than
+l	1	digit one
+m	[]\/[]	brackets, slashes, brackets
+n	[]\[]	brackets, backslash, brackets
+o	0	digit zero
+p	|D	bar, capital D
+q	(,)	parenthesis, comma, parenthesis
+r	|Z	bar, capital Z
+s	$	dollar sign
+t	]['	quote, brackets, quote
+u	|_|	bar, underscore, bar
+v	\/	backslash, forward slash
+w	\/\/	four slashes
+x	}{	curly braces
+y	`/	backtick, forward slash
+z	2	digit two
