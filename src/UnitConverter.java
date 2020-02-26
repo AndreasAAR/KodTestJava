@@ -1,20 +1,39 @@
-import java.sql.Array;
-import java.sql.SQLOutput;
 import java.util.*;
 
 /*
-
 Figures out the
-
  */
 
 
 public class UnitConverter {
-
-
     static Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
+    //We know that transitrel is always current as firstUnit, and toInfer has target as first
+    //The method returns smaller relationships to add to units
+    private static void relationshipConnect(HashMap<String, Relationship> rulesToAdd, HashMap<String, HashMap<String, Relationship>> rules){
+        Set<String> allUnits = rules.keySet();
+        //Have to go all possible levels
+        for(String firstUnit:allUnits){
+            //This ones first-level connections
+            Set<String> secondLevel = rules.get(firstUnit).keySet();
+            //The subset relations
+            for(String secondUnit: secondLevel){
+                Set<String> thirdLevel = rules.get(secondUnit).keySet();
+                for(String  thirdUnit : thirdLevel){
+                     connectThree(firstUnit,secondUnit,thirdUnit,rulesToAdd,rules);
+                 }
+            }
+
+        }
+    }
+
+    private static void connectThree(String first, String second, String third,HashMap<String, Relationship> rulesToAdd, HashMap<String, HashMap<String, Relationship>> rules){
+        if(!first.equals(third) && !first.equals(second) && !third.equals(second)){
+
+        }
+    }
+
+        public static void main(String[] args) {
 
         String leading;
         leading = null;
@@ -29,8 +48,11 @@ public class UnitConverter {
             }
 
         }
-
     }
+
+
+
+
 
     private static void convert(String leadingUnit) {
 
@@ -42,76 +64,120 @@ public class UnitConverter {
                 String units = scanner.nextLine();
                 unitOrder = units.split(" ");
             } else {
-                addRelationship(rules);
+                addRelationshipInput(rules);
             }
         }
         ArrayList<String> units = new ArrayList<>();
         units.addAll(Arrays.asList(unitOrder));
-
-       createSystem(units, rules);
+        createSystem(units, rules);
+        //To utilize new inferrings
+        createSystem(units, rules);
+        //Printing out the correct output!
+        createSystem(units, rules);
+        presentSystem(rules);
     }
 
-    //Adds relationships properly
-    private static void addRelationship(HashMap<String, HashMap<String, Relationship>> rules) {
+    private static void presentSystem(HashMap<String, HashMap<String, Relationship>> rules){
+
+      String largest = findLargest(rules);
+        System.out.println(largest);
+
+    }
+
+    private static String findLargest(HashMap<String, HashMap<String, Relationship>> rules){
+        String largest = null;
+        ArrayList<String> units = new ArrayList<>();
+        units.addAll(rules.keySet());
+        for(String unit: units){
+            int numLarger = 0;
+            Set<String> relations = rules.get(unit).keySet();
+            for(String relation : relations){
+                if(!rules.get(unit).get(relation).firstUnitIsSmaller()) {
+                    numLarger++;
+                }
+            }
+            if(numLarger == (units.size()-1)){
+                largest = unit;
+                return largest;
+            }
+
+        }
+        return largest;
+    }
+
+    //Adds relationships with smaller other first
+    private static void addRelationshipInput(HashMap<String, HashMap<String, Relationship>> rules) {
         String currentLine = scanner.nextLine();
         String[] lineTokens = currentLine.split(" ");
-        Relationship currentRelationship = new Relationship(lineTokens[0], Integer.parseInt((lineTokens[2])), lineTokens[3]);
-
+        //First unit is always assumed to be 1!
+        //    public Relationship(int valueInFirst, String firstUnit, int valueInSecond,String secondUnit){
+        Relationship firstRelationship = new Relationship(1,lineTokens[0], Integer.parseInt((lineTokens[2])), lineTokens[3]);
+        Relationship secondRelationship = new Relationship( Integer.parseInt((lineTokens[2])), lineTokens[3],1,lineTokens[0]);
         //HashMap of relationships for first Unit
-       HashMap<String,Relationship> currentMap = rules.get(currentRelationship.firstUnit);
+        addRule( rules, firstRelationship);
+        addRule( rules, secondRelationship);
+    }
+
+    //You always add a relationship to the rule with firstEntry defining
+    private static void addRule(HashMap<String, HashMap<String, Relationship>> rules, Relationship currentRelationship){
+        HashMap<String,Relationship> currentMap = rules.get(currentRelationship.getFirstUnit());
+
         if (currentMap == null) {
             currentMap = new HashMap<>();
-            currentMap.put(currentRelationship.secondUnit, currentRelationship);
+            currentMap.put(currentRelationship.getSecondUnit(), currentRelationship);
             //Put new HashMap into first Units list of relationships
-            rules.put(currentRelationship.firstUnit,currentMap);
+            rules.put(currentRelationship.getFirstUnit(),currentMap);
         } else {
             //Access existing map, add rule
-            HashMap<String, Relationship>  existingMap = rules.get(currentRelationship.firstUnit);
-            existingMap.put(currentRelationship.secondUnit,currentRelationship);
+            HashMap<String, Relationship>  existingMap = rules.get(currentRelationship.getFirstUnit());
+            existingMap.put(currentRelationship.getSecondUnit(),currentRelationship);
         }
     }
 
-
     //Makes sure ALL rules are represented!
     private static void createSystem(ArrayList<String> units, HashMap<String, HashMap<String, Relationship>> rules) {
-        HashMap<String, HashMap<String, Relationship>> fullSystem = new HashMap<>();
-
+        HashMap<String, Relationship> rulesToAdd = new HashMap<>();
         for(String currentUnit: units){
             //Get every unit
             HashMap<String,Relationship> currentSubMap = rules.get(currentUnit);
             //If already represented
             if(currentSubMap != null){
-                //If not all relations represented!
+                //If not all relations represented (we might not fill all though)
                 if( currentSubMap.entrySet().size() < units.size()-1 ){
-                    fillUnitRules(units,currentUnit,rules);
+                    fillUnitRules(rulesToAdd,rules);
                 }
+            }else{
+                rules.put(currentUnit, new HashMap<String, Relationship>());
+                fillUnitRules(rulesToAdd,rules);
             }
-
+            if(!rulesToAdd.isEmpty()){
+                for(String addTo: rulesToAdd.keySet()){
+                    Relationship add = rulesToAdd.get(addTo);
+                    rules.get(add.getFirstUnit()).put(add.getSecondUnit(),add);
+                }
+                rulesToAdd.clear();
+            }
         }
-    }
-
-    private static void fillUnitRules(ArrayList<String> units, String currentUnit, HashMap<String, HashMap<String, Relationship>> rules){
-
 
 
     }
 
-    private Relationship convertRelationship(Relationship rel1, Relationship rel2){
-        Relationship commonRelationship = null;
-
-        return commonRelationship;
+    private static void fillUnitRules(HashMap<String, Relationship> rulesToAdd,HashMap<String, HashMap<String, Relationship>> rules){
+        relationshipConnect(rulesToAdd,rules);
     }
+
 
 }
 
 
-
-
 class Relationship{
-    String firstUnit;
+   private String firstUnit;
+   private String secondUnit;
+   private int valueInSecond;
+   private int valueInFirst;
 
-    public boolean firstSmallRelationship(){
-        return  valueInSecond < 1;
+    public boolean firstUnitIsSmaller(){
+        return  !(valueInFirst == 1);
     }
 
     public String getFirstUnit() {
@@ -126,12 +192,15 @@ class Relationship{
         return valueInSecond;
     }
 
-    String secondUnit;
-    int valueInSecond;
-    public Relationship(String firstUnit, int valueInSecond,String secondUnit){
+    public int getValueInFirst() {
+        return valueInFirst;
+    }
+
+    public Relationship(int valueInFirst, String firstUnit, int valueInSecond,String secondUnit){
         this.firstUnit = firstUnit;
         this.secondUnit = secondUnit;
         this.valueInSecond = valueInSecond;
+        this.valueInFirst = valueInFirst;
     }
 
     @Override
