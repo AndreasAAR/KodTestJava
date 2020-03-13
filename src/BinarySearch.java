@@ -1,7 +1,6 @@
 public class BinarySearch {
 
     public static void main(String[] args){
-
         int[] testList = {2,3,5,7,10,20,30,35};
         binarySearch(testList,3);
 
